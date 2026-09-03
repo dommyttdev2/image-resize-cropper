@@ -1,4 +1,3 @@
-
 from io import BytesIO
 from pathlib import Path
 import uuid
@@ -15,9 +14,11 @@ app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 
 ALLOWED = {"JPEG", "PNG", "WEBP", "GIF", "BMP", "TIFF"}
 
+
 @app.get("/", response_class=HTMLResponse)
 async def index():
     return (BASE_DIR / "templates" / "index.html").read_text(encoding="utf-8")
+
 
 @app.post("/process")
 async def process_image(
@@ -46,39 +47,30 @@ async def process_image(
     except Exception:
         raise HTTPException(400, "画像を読み込めませんでした。")
 
-    # CSS上の表示座標ではなく、元画像上の座標を想定。
-    # 範囲外は黒/透明で補完できるようにする。
     if img.mode not in ("RGB", "RGBA"):
         if "A" in img.getbands():
             img = img.convert("RGBA")
         else:
             img = img.convert("RGB")
 
-    # クロップ領域を整数化し、必要ならキャンバス外も許容
-    left = round(x)
-    top = round(y)
-    right = round(x + crop_width)
-    bottom = round(y + crop_height)
-
-    if right <= left or bottom <= top:
+    crop_w = round(crop_width)
+    crop_h = round(crop_height)
+    if crop_w <= 0 or crop_h <= 0:
         raise HTTPException(400, "クロップ範囲が不正です。")
 
-    if img.mode == "RGBA":
-        bg = (0, 0, 0, 0)
-    else:
-        bg = (0, 0, 0)
+    crop_w = min(crop_w, img.width)
+    crop_h = min(crop_h, img.height)
 
-    crop = Image.new(img.mode, (right - left, bottom - top), bg)
-    src_left = max(0, left)
-    src_top = max(0, top)
-    src_right = min(img.width, right)
-    src_bottom = min(img.height, bottom)
+    max_left = max(0, img.width - crop_w)
+    max_top = max(0, img.height - crop_h)
 
-    if src_right > src_left and src_bottom > src_top:
-        part = img.crop((src_left, src_top, src_right, src_bottom))
-        crop.paste(part, (src_left - left, src_top - top))
+    left = min(max(0, round(x)), max_left)
+    top = min(max(0, round(y)), max_top)
+    right = left + crop_w
+    bottom = top + crop_h
 
-    result = crop.resize((width, height), Image.Resampling.LANCZOS)
+    result = img.crop((left, top, right, bottom))
+    result = result.resize((width, height), Image.Resampling.LANCZOS)
 
     fmt = output_format.upper()
     if fmt not in {"PNG", "JPEG", "WEBP"}:

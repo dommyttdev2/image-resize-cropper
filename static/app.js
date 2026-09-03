@@ -1,4 +1,3 @@
-
 const fileInput = document.getElementById("fileInput");
 const dropZone = document.getElementById("dropZone");
 const fileInfo = document.getElementById("fileInfo");
@@ -20,13 +19,16 @@ const cropSize = document.getElementById("cropSize");
 const outputSize = document.getElementById("outputSize");
 const status = document.getElementById("status");
 
+const MIN_ZOOM = 1;
+const MAX_ZOOM = 5;
+
 let image = null;
 let imageURL = null;
 
 // Display transform:
 // image is drawn with its center at (stage center + offset)
 // zoom is relative to the automatic fit scale.
-let zoom = 1;
+let zoom = MIN_ZOOM;
 let baseScale = 1;
 let offsetX = 0;
 let offsetY = 0;
@@ -37,6 +39,10 @@ let lastPointerY = 0;
 
 let previousWidth = Number(outWidth.value) || 1024;
 let previousHeight = Number(outHeight.value) || 1024;
+
+zoomRange.min = String(MIN_ZOOM * 100);
+zoomRange.max = String(MAX_ZOOM * 100);
+zoomRange.value = String(MIN_ZOOM * 100);
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
@@ -72,6 +78,24 @@ function canvasSize() {
     width: stage.clientWidth,
     height: stage.clientHeight,
   };
+}
+
+function clampOffsets() {
+  if (!image) return;
+
+  const { cropWidth, cropHeight } = cropSourceSize();
+  const scale = baseScale * zoom;
+
+  const imageWidth = image.naturalWidth * scale;
+  const imageHeight = image.naturalHeight * scale;
+  const cropDisplayWidth = cropWidth * scale;
+  const cropDisplayHeight = cropHeight * scale;
+
+  const maxOffsetX = Math.max(0, (imageWidth - cropDisplayWidth) / 2);
+  const maxOffsetY = Math.max(0, (imageHeight - cropDisplayHeight) / 2);
+
+  offsetX = clamp(offsetX, -maxOffsetX, maxOffsetX);
+  offsetY = clamp(offsetY, -maxOffsetY, maxOffsetY);
 }
 
 function currentTransform() {
@@ -129,6 +153,7 @@ function draw() {
   if (!image) return;
 
   resizeCanvas();
+  clampOffsets();
 
   const { width: stageWidth, height: stageHeight } = canvasSize();
   const t = currentTransform();
@@ -254,17 +279,18 @@ function fitImage() {
     targetHeight / cropHeight
   );
 
-  zoom = 1;
+  zoom = MIN_ZOOM;
   offsetX = 0;
   offsetY = 0;
 
-  zoomRange.value = 100;
+  zoomRange.value = String(Math.round(zoom * 100));
   draw();
 }
 
 function centerImage() {
   offsetX = 0;
   offsetY = 0;
+  clampOffsets();
   draw();
 }
 
@@ -382,7 +408,7 @@ function setZoom(newZoom, focusX = null, focusY = null) {
   if (!image) return;
 
   const oldZoom = zoom;
-  const nextZoom = clamp(newZoom, 0.1, 5);
+  const nextZoom = clamp(newZoom, MIN_ZOOM, MAX_ZOOM);
 
   if (focusX !== null && focusY !== null && oldZoom !== nextZoom) {
     // Keep the point under the mouse stationary while zooming.
@@ -396,7 +422,8 @@ function setZoom(newZoom, focusX = null, focusY = null) {
   }
 
   zoom = nextZoom;
-  zoomRange.value = Math.round(zoom * 100);
+  clampOffsets();
+  zoomRange.value = String(Math.round(zoom * 100));
   draw();
 }
 
@@ -443,6 +470,7 @@ canvas.addEventListener("pointermove", (event) => {
 
   offsetX += dx;
   offsetY += dy;
+  clampOffsets();
 
   lastPointerX = event.clientX;
   lastPointerY = event.clientY;
@@ -508,11 +536,17 @@ document.getElementById("processBtn").addEventListener("click", async () => {
   const cropDisplayLeft = t.cropLeft;
   const cropDisplayTop = t.cropTop;
 
-  const sourceX =
-    (cropDisplayLeft - t.imageLeft) / t.scale;
+  const sourceX = clamp(
+    (cropDisplayLeft - t.imageLeft) / t.scale,
+    0,
+    Math.max(0, image.naturalWidth - t.cropWidth)
+  );
 
-  const sourceY =
-    (cropDisplayTop - t.imageTop) / t.scale;
+  const sourceY = clamp(
+    (cropDisplayTop - t.imageTop) / t.scale,
+    0,
+    Math.max(0, image.naturalHeight - t.cropHeight)
+  );
 
   status.textContent = "生成中…";
 
@@ -531,7 +565,7 @@ document.getElementById("processBtn").addEventListener("click", async () => {
     formData.append("crop_width", String(t.cropWidth));
     formData.append("crop_height", String(t.cropHeight));
     formData.append("output_format", format.value);
-    formData.append("quality", String(quality.value));
+    formData.append("quality", String(quality.value || 100));
 
     const response = await fetch("/process", {
       method: "POST",
@@ -559,8 +593,7 @@ document.getElementById("processBtn").addEventListener("click", async () => {
 
     const link = document.createElement("a");
     link.href = url;
-    link.download =
-      `cropped_${Date.now()}.${extension}`;
+    link.download = `cropped_${Date.now()}.${extension}`;
 
     document.body.appendChild(link);
     link.click();
@@ -586,6 +619,10 @@ document.getElementById("resetBtn").addEventListener("click", () => {
   fileInfo.classList.add("hidden");
 
   image = null;
+  zoom = MIN_ZOOM;
+  offsetX = 0;
+  offsetY = 0;
+  zoomRange.value = String(MIN_ZOOM * 100);
 
   if (imageURL) {
     URL.revokeObjectURL(imageURL);
