@@ -29,7 +29,6 @@ async def process_image(
     crop_width: float = Form(...),
     crop_height: float = Form(...),
     output_format: str = Form("JPEG"),
-    quality: int = Form(95),
 ):
     if width < 1 or height < 1 or width > 20000 or height > 20000:
         raise HTTPException(400, "出力サイズが不正です。")
@@ -99,7 +98,7 @@ async def process_image(
     out = BytesIO()
     save_kwargs = {}
     if fmt in {"JPEG", "WEBP"}:
-        save_kwargs["quality"] = max(1, min(100, quality))
+        save_kwargs["quality"] = 100
         save_kwargs["method"] = 6 if fmt == "WEBP" else 0
 
     result.save(out, format=fmt, **save_kwargs)
