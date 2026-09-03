@@ -1,4 +1,3 @@
-
 * { box-sizing: border-box; }
 :root {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -51,10 +50,13 @@ button {
   border-radius:7px; padding:8px 11px; cursor:pointer;
 }
 button:hover { background:#2a3440; }
+button.active { border-color:#7893ff; background:#334269; color:#fff; }
+button:disabled { cursor:not-allowed; opacity:.55; }
 input[type=number], select {
   width:100%; margin-top:6px; background:#10151c; color:#eef2f7;
   border:1px solid #354150; border-radius:7px; padding:9px;
 }
+input[readonly] { color:#aab5c3; background:#151a21; }
 .settings { padding:18px; }
 .settings > label { display:block; margin-bottom:14px; font-size:13px; color:#b4becb; }
 .input-unit { position:relative; }
@@ -77,6 +79,32 @@ hr { border:0; border-top:1px solid #2d3641; margin:20px 0; }
 .primary:hover { background:#6d87f1; }
 .secondary { width:100%; margin-top:8px; }
 .status { min-height:20px; margin-top:10px; font-size:12px; color:#9ba8b8; }
+
+.marketplace-controls {
+  margin: 2px 0 16px;
+  padding: 12px;
+  border: 1px solid #303a47;
+  border-radius: 9px;
+  background: #141a21;
+}
+.marketplace-label { color:#8490a0; font-size:11px; margin:10px 0 5px; }
+.marketplace-tabs { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+.marketplace-tabs button { padding:7px; font-size:12px; }
+.marketplace-current {
+  margin-top:12px; padding:9px; background:#10151c; border-radius:7px;
+  display:flex; flex-direction:column; gap:3px;
+}
+.marketplace-current span { color:#788595; font-size:11px; }
+.marketplace-current strong { font-size:12px; }
+.marketplace-targets { display:grid; gap:5px; margin-top:10px; }
+.marketplace-targets > div {
+  display:flex; justify-content:space-between; gap:8px; padding:6px 8px;
+  border:1px solid #29333f; border-radius:6px; color:#8995a5; font-size:11px;
+  cursor:pointer;
+}
+.marketplace-targets > div.active { border-color:#5d78e8; background:#1c2740; color:#dce4ff; }
+.marketplace-targets strong { color:inherit; }
+
 @media (max-width: 900px) {
   .editor { grid-template-columns:1fr; }
   .stage { height:55vh; min-height:350px; }
