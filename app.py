@@ -28,7 +28,7 @@ async def process_image(
     y: float = Form(...),
     crop_width: float = Form(...),
     crop_height: float = Form(...),
-    output_format: str = Form("PNG"),
+    output_format: str = Form("JPEG"),
     quality: int = Form(95),
 ):
     if width < 1 or height < 1 or width > 20000 or height > 20000:
