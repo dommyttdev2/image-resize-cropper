@@ -17,7 +17,10 @@ ALLOWED = {"JPEG", "PNG", "WEBP", "GIF", "BMP", "TIFF"}
 
 @app.get("/", response_class=HTMLResponse)
 async def index():
-    return (BASE_DIR / "templates" / "index.html").read_text(encoding="utf-8")
+    return HTMLResponse(
+        content=(BASE_DIR / "templates" / "index.html").read_text(encoding="utf-8"),
+        headers={"Cache-Control": "no-store, max-age=0"},
+    )
 
 
 @app.post("/process")
