@@ -78,6 +78,20 @@
           <button type="button" data-size="1080x1920">1080×1920</button>
         </div>
 
+        <label>販売サイト用プリセット
+          <select id="sitePreset">
+            <option value="">選択してください</option>
+            <optgroup label="FANZA">
+              <option value="560x420">パッケージ画像（560×420）</option>
+              <option value="100x100">サムネイル画像（100×100）</option>
+            </optgroup>
+            <optgroup label="DLsite">
+              <option value="560x420">パッケージ画像（560×420）</option>
+              <option value="300x300">サムネイル画像（300×300）</option>
+            </optgroup>
+          </select>
+        </label>
+
         <hr>
 
         <label>出力形式
@@ -108,5 +122,36 @@
   </main>
 </div>
 <script src="/static/app.js?v=20260903-crop-bounds-2"></script>
+<script>
+  const sitePreset = document.getElementById("sitePreset");
+
+  sitePreset.addEventListener("change", () => {
+    if (!sitePreset.value) return;
+
+    const [width, height] = sitePreset.value
+      .split("x")
+      .map(Number);
+
+    setOutputSize(width, height);
+  });
+
+  document.getElementById("outWidth").addEventListener("input", () => {
+    sitePreset.value = "";
+  });
+
+  document.getElementById("outHeight").addEventListener("input", () => {
+    sitePreset.value = "";
+  });
+
+  document.querySelectorAll(".presets button").forEach((button) => {
+    button.addEventListener("click", () => {
+      sitePreset.value = "";
+    });
+  });
+
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    sitePreset.value = "";
+  });
+</script>
 </body>
 </html>
