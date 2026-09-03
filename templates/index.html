@@ -1,0 +1,117 @@
+
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Image Resize & Cropper</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Image Resize & Cropper</h1>
+    <p>画像を指定サイズに合わせて、拡大・縮小・切り抜きできます。</p>
+  </header>
+
+  <main>
+    <section class="panel upload-panel">
+      <label id="dropZone" class="drop-zone">
+        <input id="fileInput" type="file" accept="image/*">
+        <div class="drop-icon">＋</div>
+        <strong>画像を選択</strong>
+        <span>クリックまたはドラッグ＆ドロップ</span>
+      </label>
+      <div id="fileInfo" class="file-info hidden"></div>
+    </section>
+
+    <section id="editor" class="editor hidden">
+      <div class="preview-panel panel">
+        <div class="panel-title">
+          <span>プレビュー</span>
+          <span id="zoomLabel">100%</span>
+        </div>
+        <div id="stage" class="stage">
+          <canvas id="canvas"></canvas>
+          <div id="emptyPreview">画像を選択してください</div>
+        </div>
+        <div class="preview-help">
+          ドラッグ：位置調整　／　ホイール：ズーム　／　「フィット」で自動調整
+        </div>
+        <div class="zoom-controls">
+          <button id="zoomOut" type="button">−</button>
+          <input id="zoomRange" type="range" min="10" max="500" value="100">
+          <button id="zoomIn" type="button">＋</button>
+          <button id="fitBtn" type="button">フィット</button>
+          <button id="centerBtn" type="button">中央</button>
+        </div>
+      </div>
+
+      <aside class="settings panel">
+        <div class="panel-title">出力設定</div>
+
+        <label>幅
+          <div class="input-unit">
+            <input id="outWidth" type="number" min="1" max="20000" value="1024">
+            <span>px</span>
+          </div>
+        </label>
+
+        <label>高さ
+          <div class="input-unit">
+            <input id="outHeight" type="number" min="1" max="20000" value="1024">
+            <span>px</span>
+          </div>
+        </label>
+
+        <label class="check">
+          <input id="lockAspect" type="checkbox" checked>
+          <span>アスペクト比を維持</span>
+        </label>
+
+        <div class="preset-title">プリセット</div>
+        <div class="presets">
+          <button type="button" data-size="512x512">512×512</button>
+          <button type="button" data-size="768x768">768×768</button>
+          <button type="button" data-size="1024x1024">1024×1024</button>
+          <button type="button" data-size="1280x720">1280×720</button>
+          <button type="button" data-size="1920x1080">1920×1080</button>
+          <button type="button" data-size="1080x1920">1080×1920</button>
+        </div>
+
+        <hr>
+
+        <label>出力形式
+          <select id="format">
+            <option value="PNG">PNG</option>
+            <option value="JPEG">JPEG</option>
+            <option value="WEBP">WebP</option>
+          </select>
+        </label>
+
+        <label id="qualityWrap" class="hidden">品質
+          <div class="input-unit">
+            <input id="quality" type="number" min="1" max="100" value="95">
+            <span>%</span>
+          </div>
+        </label>
+
+        <div class="info-box">
+          <div>元画像</div>
+          <strong id="sourceSize">-</strong>
+          <div>クロップ範囲</div>
+          <strong id="cropSize">-</strong>
+          <div>出力</div>
+          <strong id="outputSize">-</strong>
+        </div>
+
+        <button id="processBtn" class="primary" type="button">画像を生成・保存</button>
+        <button id="resetBtn" class="secondary" type="button">別の画像を選択</button>
+        <div id="status" class="status"></div>
+      </aside>
+    </section>
+  </main>
+</div>
+<script src="/static/app.js"></script>
+</body>
+</html>
